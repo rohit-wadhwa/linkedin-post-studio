@@ -9,6 +9,23 @@ A **free, lightweight Chrome extension** that enhances the LinkedIn post editor 
 **License**: MIT
 **Price**: Free (intentionally — this is a strategic differentiator)
 
+## Owner & Contact
+
+- **Owner**: Rohit Wadhwa
+- **GitHub**: https://github.com/rohit-wadhwa
+- **LinkedIn**: https://www.linkedin.com/in/rohit-wadhwa
+- **Twitter**: https://twitter.com/RohitWadhwa52
+- **Website**: https://about.me/rohit.wadhwa
+- **Buy Me a Coffee**: https://www.buymeacoffee.com/rohit.wadhwa
+
+## Community & Support Configuration
+
+The following community files are set up:
+- `.github/FUNDING.yml` — GitHub Sponsors (`rohit-wadhwa`) + Buy Me a Coffee link. This enables the "Sponsor" button on the GitHub repo.
+- `.github/ISSUE_TEMPLATE/bug_report.md` — Standardized bug report template with fields for reproduction steps, expected behavior, and environment info.
+- `.github/ISSUE_TEMPLATE/feature_request.md` — Feature request template with problem description, proposed solution, and alternatives.
+- `README.md` — Includes Buy Me a Coffee button, social links (Twitter, LinkedIn, GitHub, website), hit counter badge, and contributing guidelines.
+
 ## Strategic Positioning
 
 LinkedIn Post Studio sits in the sweet spot between bare-bones text formatters (too basic, often abandoned) and full platforms like AuthoredUp ($20/mo) and Taplio ($39/mo) (too expensive, too complex).

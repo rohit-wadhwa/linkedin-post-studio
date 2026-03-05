@@ -21,7 +21,7 @@ A Chrome extension that enhances the LinkedIn post editor with formatting tools,
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-username/linkedin-post-studio.git
+   git clone https://github.com/rohit-wadhwa/linkedin-post-studio.git
    ```
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable **Developer mode** (toggle in top-right corner)
@@ -83,16 +83,37 @@ The extension ships with starter templates:
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -m 'Add my feature'`
-4. Push to the branch: `git push origin feature/my-feature`
-5. Open a Pull Request
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+- Fork the project.
+- Create your feature branch (`git checkout -b feature/AmazingFeature`).
+- Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+- Push to the branch (`git push origin feature/AmazingFeature`).
+- Open a Pull Request.
+
+## Support
+
+Found LinkedIn Post Studio useful? Consider [supporting further development](https://www.buymeacoffee.com/rohit.wadhwa).
+
+<a href="https://www.buymeacoffee.com/rohit.wadhwa"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=rohit.wadhwa&button_colour=40DCA5&font_colour=ffffff&font_family=Cookie&outline_colour=000000&coffee_colour=FFDD00" /></a>
 
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
+## Support or Contact
+
+Having trouble with LinkedIn Post Studio? Check out our [GitHub Issues](https://github.com/rohit-wadhwa/linkedin-post-studio/issues) for documentation and support or contact us directly for help.
+
+<a href="https://twitter.com/RohitWadhwa52" target="_blank"><img src="https://raw.githubusercontent.com/nakulbhati/nakulbhati/master/contain/tw.png" alt="Twitter" width="30"></a>
+<a href="https://www.linkedin.com/in/rohit-wadhwa" target="_blank"><img src="https://raw.githubusercontent.com/nakulbhati/nakulbhati/master/contain/in.png" alt="LinkedIn" width="30"></a>
+<a href="https://github.com/rohit-wadhwa" target="_blank"><img src="https://raw.githubusercontent.com/nakulbhati/nakulbhati/master/contain/git.png" alt="GitHub" width="30"></a>
+<a href="https://about.me/rohit.wadhwa" target="_blank"><img src="https://raw.githubusercontent.com/nakulbhati/nakulbhati/master/contain/www.png" alt="Website" width="30"></a>
+
 ## Acknowledgments
 
 Built to solve the frustration of writing formatted LinkedIn posts without external tools.
+
+[![Github Hits](https://hits.sh/github.com/rohit-wadhwa/linkedin-post-studio.svg)](https://github.com/rohit-wadhwa/linkedin-post-studio/)
+
+Project Link: [https://github.com/rohit-wadhwa/linkedin-post-studio](https://github.com/rohit-wadhwa/linkedin-post-studio)
