@@ -1,0 +1,44 @@
+Data Safety Responses for Chrome Web Store
+===========================================
+
+Use these answers when filling out the "Privacy practices" tab
+in the Chrome Web Store developer dashboard.
+
+1. Does your extension collect any personal data?
+   Answer: No
+
+2. Does your extension transmit any data to external servers?
+   Answer: No
+
+3. What data does your extension handle?
+   Answer: The extension stores user-created templates and extension settings
+   in chrome.storage.local on the user's device. No personal information is
+   collected. No data leaves the device.
+
+4. Data types NOT collected:
+   - Personally identifiable information
+   - Health information
+   - Financial and payment information
+   - Authentication information
+   - Personal communications
+   - Location data
+   - Web history
+   - User activity (beyond local usage counters)
+   - Website content
+
+5. Data usage disclosures:
+   - Data is NOT sold to third parties
+   - Data is NOT used or transferred for purposes unrelated to the item's core functionality
+   - Data is NOT used or transferred to determine creditworthiness or for lending purposes
+
+6. Certified disclosures:
+   - The extension does not collect or transmit user data
+   - All data storage is local to the user's device (chrome.storage.local)
+   - The extension makes no external network requests
+   - The extension has no analytics, telemetry, or tracking
+   - The extension requires no user account or sign-in
+
+7. Permissions justification summary:
+   - storage: Local template and settings storage only
+   - activeTab: Inject formatting toolbar into LinkedIn editor
+   - host_permissions (linkedin.com): Restrict to LinkedIn pages only

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn Post Studio</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <header class="popup-header">
+      <h1>LinkedIn Post Studio</h1>
+      <p class="tagline">Write better LinkedIn posts</p>
+    </header>
+
+    <section class="popup-section">
+      <h2>Settings</h2>
+      <label class="toggle-row">
+        <span>Formatting toolbar</span>
+        <input type="checkbox" id="toggle-toolbar" checked>
+      </label>
+      <label class="toggle-row">
+        <span>Keyboard shortcuts</span>
+        <input type="checkbox" id="toggle-shortcuts" checked>
+      </label>
+      <label class="toggle-row">
+        <span>Auto word/char count</span>
+        <input type="checkbox" id="toggle-stats" checked>
+      </label>
+    </section>
+
+    <section class="popup-section">
+      <h2>Quick Actions</h2>
+      <button class="popup-btn" id="btn-open-linkedin">Open LinkedIn</button>
+      <button class="popup-btn" id="btn-manage-templates">Manage Templates</button>
+      <button class="popup-btn" id="btn-export-templates">Export Templates</button>
+      <button class="popup-btn" id="btn-import-templates">Import Templates</button>
+      <input type="file" id="import-file" accept=".json" style="display:none">
+    </section>
+
+    <section class="popup-section popup-stats">
+      <h2>Usage Stats</h2>
+      <div class="stat-row">
+        <span>Posts formatted</span>
+        <span id="stat-posts">0</span>
+      </div>
+      <div class="stat-row">
+        <span>Templates used</span>
+        <span id="stat-templates">0</span>
+      </div>
+    </section>
+
+    <footer class="popup-footer">
+      <p>v1.0.0 &middot; LinkedIn Post Studio</p>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
