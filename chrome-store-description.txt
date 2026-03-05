@@ -1,0 +1,45 @@
+LinkedIn Post Studio — Write better LinkedIn posts directly inside LinkedIn.
+
+A free, lightweight Chrome extension that adds a formatting toolbar directly into LinkedIn's post editor. No external tools, no copy-paste — just open the LinkedIn post composer and start formatting.
+
+KEY FEATURES:
+
+• Inline Formatting — Bold, italic, and bold-italic using Unicode characters that work natively on LinkedIn
+• Bullet Lists — One-click bullet points, arrows, dashes, and check marks
+• Separators — Line, dot, star, and wave dividers to structure your posts
+• Post Templates — Save and reuse writing blocks for hooks, CTAs, hashtags, and post structures
+• Live Preview — See how your post will look on desktop and mobile before publishing
+• Character & Word Counter — Real-time stats while you write
+• Keyboard Shortcuts — Ctrl+B for bold, Ctrl+I for italic
+• Template Import/Export — Share templates as JSON files with your team
+
+BUILT-IN TEMPLATES:
+
+The extension ships with starter templates for:
+- Post hooks (questions, surprising stats)
+- Calls to action (engagement, follow)
+- Hashtag sets (tech, career)
+- Post structures (listicle, story post)
+
+Plus, you can create and save your own custom templates.
+
+PRIVACY-FIRST:
+
+• No data collection — everything stays on your device
+• No analytics or tracking
+• Minimal permissions — only storage and activeTab
+• No account required
+• 100% free, no premium tier
+
+HOW IT WORKS:
+
+1. Install the extension
+2. Go to LinkedIn and open the post editor
+3. The formatting toolbar appears automatically above the editor
+4. Select text and click Bold, Italic, or other formatting buttons
+5. Use the Preview button to see how your post will look
+6. Use Templates to quickly insert saved content blocks
+
+This extension is perfect for LinkedIn creators, marketers, thought leaders, and anyone who wants their posts to stand out with clean formatting.
+
+Open source: https://github.com/rohit-wadhwa/linkedin-post-studio

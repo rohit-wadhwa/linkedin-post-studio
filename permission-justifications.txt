@@ -1,0 +1,42 @@
+Permission Justifications for LinkedIn Post Studio
+==================================================
+
+This document explains why each permission is requested by the extension.
+Use this when filling out the Chrome Web Store developer dashboard.
+
+1. storage
+----------
+Purpose: Save user templates and extension settings locally on the device.
+Details:
+- Templates (hooks, CTAs, hashtags, post structures) are stored in chrome.storage.local
+- Extension settings (toolbar enabled, keyboard shortcuts, auto stats) are stored locally
+- Usage statistics (posts formatted count, templates used count) are stored locally
+- All data remains on the user's device and is never transmitted externally
+- No personal or sensitive user data is stored
+
+2. activeTab
+------------
+Purpose: Access the current LinkedIn tab to inject the formatting toolbar into the post editor.
+Details:
+- The extension needs to read and modify the LinkedIn post editor DOM to inject the toolbar
+- Only activates on linkedin.com pages (restricted by host_permissions)
+- Does not access any other tabs or websites
+- Does not read or transmit any page content — only injects UI elements
+
+3. host_permissions: https://www.linkedin.com/*
+-----------------------------------------------
+Purpose: Restrict content script injection to LinkedIn pages only.
+Details:
+- Content scripts (toolbar, formatting logic, template manager) only run on linkedin.com
+- The extension does not operate on any other website
+- No data from LinkedIn pages is collected, stored, or transmitted
+- The extension only adds UI elements (toolbar, panels) to the page
+
+Summary
+-------
+LinkedIn Post Studio uses the minimum permissions necessary:
+- storage: for saving templates and settings locally
+- activeTab: for injecting the toolbar into the LinkedIn editor
+- host_permissions: to restrict operation to linkedin.com only
+
+No remote code execution. No data collection. No external network requests.

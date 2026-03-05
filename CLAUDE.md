@@ -25,6 +25,9 @@ The following community files are set up:
 - `.github/ISSUE_TEMPLATE/bug_report.md` — Standardized bug report template with fields for reproduction steps, expected behavior, and environment info.
 - `.github/ISSUE_TEMPLATE/feature_request.md` — Feature request template with problem description, proposed solution, and alternatives.
 - `README.md` — Includes Buy Me a Coffee button, social links (Twitter, LinkedIn, GitHub, website), hit counter badge, and contributing guidelines.
+- `PRIVACY-POLICY.md` — Privacy policy for Chrome Web Store listing. States no data collection, local-only storage.
+- `SUPPORT.md` — Support channels: GitHub Issues, Discussions, and direct contact.
+- `CHANGELOG.md` — Version history following Keep a Changelog format.
 
 ## Strategic Positioning
 
@@ -173,6 +176,68 @@ Key issues:
 
 ### No Build System
 This is intentional. The extension is vanilla JS with no dependencies, no bundler, no transpiler. This keeps it simple, auditable, and fast. Don't add a build step unless there's a compelling reason.
+
+## Release & Publishing Pipeline
+
+### Chrome Web Store Publishing (CI/CD)
+
+The deploy pipeline is in `.github/workflows/deploy.yml`. It triggers on:
+- Push to `main` branch
+- Version tags (`v*`, e.g., `v1.0.0`)
+
+**What it does:**
+1. Checks out code
+2. Zips the `extension/` directory (excluding git files)
+3. Uploads to Chrome Web Store via `Klemensas/chrome-extension-upload-action@v1.1`
+4. Auto-publishes
+
+**Required GitHub Secrets** (set in repo Settings > Secrets):
+| Secret | Description |
+|--------|-------------|
+| `CHROME_CLIENT_ID` | OAuth2 client ID from Google Cloud Console |
+| `CHROME_EXTENSION_SECRET` | OAuth2 client secret |
+| `CHROME_REFRESH_TOKEN` | OAuth2 refresh token for Chrome Web Store API |
+| `CHROME_APP_ID` | Extension ID from Chrome Web Store (assigned after first upload) |
+
+### How to Get Chrome Web Store API Credentials
+
+1. **Register as a Chrome Web Store developer**: Pay one-time $5 fee at https://chrome.google.com/webstore/devconsole/
+2. **Create a Google Cloud project**: Go to https://console.cloud.google.com/
+3. **Enable the Chrome Web Store API**: In APIs & Services > Library
+4. **Create OAuth2 credentials**: APIs & Services > Credentials > Create Credentials > OAuth Client ID (type: Desktop app)
+5. **Get the refresh token**: Use the OAuth2 playground or the `chrome-webstore-upload` CLI tool to authorize and get a refresh token
+6. **First upload must be manual**: Upload the zip via the developer dashboard to get the `CHROME_APP_ID`
+7. **Add all 4 secrets to GitHub**: Settings > Secrets and variables > Actions
+
+### How to Release a New Version
+
+1. Update `version` in `extension/manifest.json` (follow semver: `major.minor.patch`)
+2. Update `CHANGELOG.md` with the changes
+3. Commit: `git commit -m "Release v1.x.x"`
+4. Tag: `git tag v1.x.x`
+5. Push: `git push origin main --tags`
+6. The deploy workflow auto-publishes to Chrome Web Store
+
+### Chrome Web Store Listing Assets
+
+These files are pre-written for copy-pasting into the Chrome Web Store developer dashboard:
+- `chrome-store-description.txt` — Full store listing description (features, privacy, how it works)
+- `permission-justifications.txt` — Justification for each permission (required during review)
+- `store-data-safety.txt` — Answers for the "Privacy practices" tab in the dashboard
+
+### Chrome Web Store Required Assets (to create before first publish)
+- **Extension icons**: Already in `extension/assets/icons/` (16, 48, 128px)
+- **Screenshots**: Need 1-5 screenshots (1280x800 or 640x400) — capture from LinkedIn with toolbar visible
+- **Promotional images** (optional): Small tile (440x280), Large tile (920x680), Marquee (1400x560)
+- **Category**: Productivity
+- **Language**: English
+- **Privacy policy URL**: Link to `PRIVACY-POLICY.md` on GitHub or host separately
+
+### Chrome Web Store Review Process
+- Google reviews all extensions before publishing
+- Typical review time: 1-3 business days (can be longer for first submission)
+- Common rejection reasons: insufficient permission justifications, missing privacy policy, misleading description
+- The permission justifications file is pre-written to address all our permissions proactively
 
 ## Where to Start
 
