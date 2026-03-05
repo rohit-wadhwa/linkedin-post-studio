@@ -1,0 +1,300 @@
+/**
+ * LinkedIn Post Studio - Styles
+ * Toolbar, panels, and UI component styles.
+ */
+
+/* ============================================
+   Toolbar
+   ============================================ */
+
+.lps-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  z-index: 9999;
+}
+
+.lps-btn-group {
+  display: flex;
+  gap: 2px;
+}
+
+.lps-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 2px 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #333;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.lps-btn:hover {
+  background: #e8f0fe;
+  border-color: #0a66c2;
+}
+
+.lps-btn:active {
+  background: #d2e3fc;
+}
+
+.lps-btn-bold {
+  font-weight: 700;
+}
+
+.lps-btn-italic {
+  font-style: italic;
+}
+
+.lps-btn-bold-italic {
+  font-weight: 700;
+  font-style: italic;
+}
+
+.lps-btn-primary {
+  background: #0a66c2;
+  color: #fff;
+  border-color: #0a66c2;
+}
+
+.lps-btn-primary:hover {
+  background: #004182;
+}
+
+.lps-btn-danger {
+  color: #cc1016;
+  border-color: #cc1016;
+}
+
+.lps-btn-danger:hover {
+  background: #fde8e8;
+}
+
+.lps-btn-sm {
+  font-size: 11px;
+  height: 24px;
+  padding: 2px 6px;
+  min-width: 24px;
+}
+
+.lps-btn-dropdown {
+  padding: 2px 10px;
+}
+
+.lps-btn-preview {
+  padding: 2px 10px;
+}
+
+.lps-active {
+  background: #0a66c2 !important;
+  color: #fff !important;
+  border-color: #0a66c2 !important;
+}
+
+.lps-divider {
+  display: inline-block;
+  width: 1px;
+  height: 20px;
+  background: #d0d0d0;
+  margin: 0 4px;
+}
+
+.lps-stats {
+  margin-left: auto;
+  font-size: 11px;
+  color: #666;
+  white-space: nowrap;
+}
+
+/* ============================================
+   Panels (Template & Preview)
+   ============================================ */
+
+.lps-panel {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  z-index: 9998;
+}
+
+.lps-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  font-size: 13px;
+  color: #333;
+}
+
+.lps-panel-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #666;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.lps-panel-close:hover {
+  color: #cc1016;
+}
+
+.lps-panel-content {
+  padding: 10px 12px;
+}
+
+/* ============================================
+   Template Panel
+   ============================================ */
+
+.lps-template-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.lps-template-item:last-child {
+  border-bottom: none;
+}
+
+.lps-template-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+.lps-template-category {
+  font-size: 11px;
+  color: #0a66c2;
+  background: #e8f0fe;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.lps-template-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.lps-btn-add-template {
+  width: 100%;
+  margin-top: 8px;
+  text-align: center;
+  border-style: dashed;
+}
+
+.lps-template-editor {
+  padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lps-template-editor-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.lps-input,
+.lps-select,
+.lps-textarea {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.lps-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.lps-input:focus,
+.lps-select:focus,
+.lps-textarea:focus {
+  outline: none;
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.15);
+}
+
+.lps-empty {
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+  padding: 16px 0;
+}
+
+/* ============================================
+   Preview Panel
+   ============================================ */
+
+.lps-preview-panel {
+  position: relative;
+}
+
+.lps-view-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 6px 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.lps-preview-content {
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.lps-preview-content p {
+  margin: 0 0 4px 0;
+}
+
+.lps-preview-desktop {
+  max-width: 100%;
+}
+
+.lps-preview-mobile {
+  max-width: 340px;
+  margin: 0 auto;
+  border-left: 1px solid #e0e0e0;
+  border-right: 1px solid #e0e0e0;
+  padding: 12px;
+}
+
+.lps-preview-empty {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+}
