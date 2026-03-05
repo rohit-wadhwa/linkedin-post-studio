@@ -16,6 +16,57 @@
 
   let toolbarInjected = false;
   let currentEditor = null;
+  let settings = {
+    toolbarEnabled: true,
+    keyboardShortcuts: true,
+    autoStats: true,
+    theme: 'light',
+  };
+
+  /**
+   * Load settings from background service worker.
+   */
+  function loadSettings() {
+    chrome.runtime.sendMessage({ type: 'GET_SETTINGS' }, (result) => {
+      if (result) {
+        settings = { ...settings, ...result };
+      }
+    });
+  }
+
+  /**
+   * Listen for settings changes from popup.
+   */
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.lps_settings) {
+      const newSettings = changes.lps_settings.newValue;
+      if (newSettings) {
+        settings = { ...settings, ...newSettings };
+        applySettings();
+      }
+    }
+  });
+
+  /**
+   * Apply current settings to the UI.
+   */
+  function applySettings() {
+    const toolbar = document.querySelector('.lps-toolbar');
+    if (toolbar) {
+      toolbar.style.display = settings.toolbarEnabled ? '' : 'none';
+    }
+    const stats = document.querySelector('.lps-stats');
+    if (stats) {
+      stats.style.display = settings.autoStats ? '' : 'none';
+    }
+  }
+
+  /**
+   * Send a stat increment to background.
+   */
+  function incrementStat(stat) {
+    chrome.runtime.sendMessage({ type: 'INCREMENT_STAT', stat });
+  }
 
   /**
    * Find the active LinkedIn post editor element.
@@ -26,22 +77,29 @@
 
   /**
    * Wait for the LinkedIn post modal/editor to appear,
-   * then inject the toolbar.
+   * then inject the toolbar. Uses debounce to avoid excessive DOM queries.
    */
   function observeEditorAppearance() {
-    const observer = new MutationObserver((mutations) => {
-      const editor = findEditor();
-      if (editor && !toolbarInjected) {
-        currentEditor = editor;
-        injectToolbar(editor);
-        toolbarInjected = true;
-      }
+    let debounceTimer = null;
 
-      // Reset if editor is removed (modal closed)
-      if (!editor && toolbarInjected) {
-        toolbarInjected = false;
-        currentEditor = null;
-      }
+    const observer = new MutationObserver(() => {
+      if (debounceTimer) return;
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
+
+        const editor = findEditor();
+        if (editor && !toolbarInjected) {
+          currentEditor = editor;
+          injectToolbar(editor);
+          toolbarInjected = true;
+        }
+
+        // Reset if editor is removed (modal closed)
+        if (!editor && toolbarInjected) {
+          toolbarInjected = false;
+          currentEditor = null;
+        }
+      }, 100);
     });
 
     observer.observe(document.body, {
@@ -54,6 +112,8 @@
    * Inject the formatting toolbar above the editor.
    */
   function injectToolbar(editor) {
+    if (!settings.toolbarEnabled) return;
+
     // Find the best parent container to place toolbar
     const parentContainer =
       editor.closest('.share-creation-state') ||
@@ -68,14 +128,20 @@
     const toolbar = window.LinkedInPostStudio?.createToolbar?.(editor);
     if (toolbar) {
       parentContainer.insertBefore(toolbar, parentContainer.firstChild);
+      applySettings();
     }
   }
 
   /**
    * Get the currently active editor element.
+   * Validates that the cached editor is still in the DOM.
    */
   function getActiveEditor() {
-    return currentEditor || findEditor();
+    if (currentEditor && currentEditor.isConnected) {
+      return currentEditor;
+    }
+    currentEditor = findEditor();
+    return currentEditor;
   }
 
   /**
@@ -124,6 +190,8 @@
     range.insertNode(document.createTextNode(formatted));
 
     editor.dispatchEvent(new Event('input', { bubbles: true }));
+
+    incrementStat('postsFormatted');
   }
 
   /**
@@ -166,13 +234,21 @@
       .join('');
   }
 
+  // Track numbered bullet counter per editor session
+  let numberedBulletCounter = 0;
+
   /**
    * Insert a bullet list marker at the current line.
    */
   function insertBullet(type) {
+    if (type === 'numbered') {
+      numberedBulletCounter++;
+      insertTextAtCursor('\n' + numberedBulletCounter + '. ');
+      return;
+    }
+
     const markers = {
       bullet: '• ',
-      numbered: '', // handled separately
       arrow: '→ ',
       dash: '— ',
       check: '✓ ',
@@ -180,6 +256,13 @@
 
     const marker = markers[type] || '• ';
     insertTextAtCursor('\n' + marker);
+  }
+
+  /**
+   * Reset the numbered bullet counter (e.g., when editor closes).
+   */
+  function resetNumberedCounter() {
+    numberedBulletCounter = 0;
   }
 
   /**
@@ -211,6 +294,9 @@
     return { chars, words, lines };
   }
 
+  // Load settings on init
+  loadSettings();
+
   // Expose API for toolbar-ui.js and template-manager.js
   window.LinkedInPostStudio = window.LinkedInPostStudio || {};
   Object.assign(window.LinkedInPostStudio, {
@@ -221,6 +307,9 @@
     insertBullet,
     insertSeparator,
     getEditorStats,
+    incrementStat,
+    resetNumberedCounter,
+    settings,
     SELECTORS,
   });
 

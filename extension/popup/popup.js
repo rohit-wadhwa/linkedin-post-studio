@@ -94,22 +94,43 @@ function setupEventListeners() {
       try {
         const imported = JSON.parse(event.target.result);
         if (!Array.isArray(imported)) {
-          alert('Invalid template file format.');
+          alert('Invalid template file format: expected an array.');
           return;
+        }
+
+        // Validate each template has required fields
+        const valid = imported.filter((t) => {
+          return t && typeof t.name === 'string' && t.name.trim() &&
+                 typeof t.content === 'string' && t.content.trim();
+        });
+
+        if (valid.length === 0) {
+          alert('No valid templates found. Each template must have a "name" and "content" field.');
+          return;
+        }
+
+        if (valid.length < imported.length) {
+          const skipped = imported.length - valid.length;
+          if (!confirm(`${skipped} template(s) are missing required fields and will be skipped. Import ${valid.length} valid template(s)?`)) {
+            return;
+          }
         }
 
         chrome.storage.local.get('lps_templates', (result) => {
           const existing = result.lps_templates || [];
-          const merged = [...existing, ...imported.map((t) => ({
-            ...t,
+          const merged = [...existing, ...valid.map((t) => ({
+            name: t.name.trim(),
+            category: (t.category && typeof t.category === 'string') ? t.category.trim() : 'General',
+            content: t.content,
             id: 'tpl-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+            createdAt: new Date().toISOString(),
           }))];
           chrome.storage.local.set({ lps_templates: merged }, () => {
-            alert(`Imported ${imported.length} templates successfully!`);
+            alert(`Imported ${valid.length} template(s) successfully!`);
           });
         });
       } catch (err) {
-        alert('Failed to parse template file.');
+        alert('Failed to parse template file. Please ensure it is valid JSON.');
       }
     };
     reader.readAsText(file);

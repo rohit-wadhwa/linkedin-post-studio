@@ -221,6 +221,7 @@
       insertBtn.textContent = 'Insert';
       insertBtn.addEventListener('click', () => {
         LPS.insertTextAtCursor(tpl.content);
+        if (LPS.incrementStat) LPS.incrementStat('templatesUsed');
       });
 
       const deleteBtn = document.createElement('button');
@@ -298,6 +299,8 @@
   function togglePreview() {
     const existing = document.querySelector('.lps-preview-panel');
     if (existing) {
+      // Clean up listener before removing
+      if (existing._lpsCleanup) existing._lpsCleanup();
       existing.remove();
       return;
     }
@@ -312,7 +315,10 @@
     const closeBtn = document.createElement('button');
     closeBtn.className = 'lps-panel-close';
     closeBtn.textContent = '×';
-    closeBtn.addEventListener('click', () => panel.remove());
+    closeBtn.addEventListener('click', () => {
+      if (panel._lpsCleanup) panel._lpsCleanup();
+      panel.remove();
+    });
     header.appendChild(closeBtn);
 
     const viewToggle = document.createElement('div');
@@ -338,7 +344,7 @@
       previewContent.className = `lps-preview-content lps-preview-${view}`;
     });
 
-    // Live update preview
+    // Live update preview with proper cleanup
     const editor = LPS.getActiveEditor();
     if (editor) {
       const updatePreview = () => {
@@ -346,6 +352,9 @@
         previewContent.innerHTML = formatPreviewText(text);
       };
       editor.addEventListener('input', updatePreview);
+      panel._lpsCleanup = () => {
+        editor.removeEventListener('input', updatePreview);
+      };
       updatePreview();
     }
 

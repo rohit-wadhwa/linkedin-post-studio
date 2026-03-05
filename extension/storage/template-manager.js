@@ -141,15 +141,27 @@
 
   /**
    * Import templates from JSON string.
+   * Validates that each template has required name and content fields.
    */
   async function importTemplates(jsonString) {
     const imported = JSON.parse(jsonString);
-    if (!Array.isArray(imported)) throw new Error('Invalid template format');
+    if (!Array.isArray(imported)) throw new Error('Invalid template format: expected an array');
+
+    // Validate each template has required fields
+    const valid = imported.filter((t) =>
+      t && typeof t.name === 'string' && t.name.trim() &&
+      typeof t.content === 'string' && t.content.trim()
+    );
+
+    if (valid.length === 0) throw new Error('No valid templates found');
 
     const existing = await loadTemplates();
-    const merged = [...existing, ...imported.map((t) => ({
-      ...t,
+    const merged = [...existing, ...valid.map((t) => ({
+      name: t.name.trim(),
+      category: (t.category && typeof t.category === 'string') ? t.category.trim() : 'General',
+      content: t.content,
       id: 'tpl-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+      createdAt: new Date().toISOString(),
     }))];
 
     await chrome.storage.local.set({ [STORAGE_KEY]: merged });

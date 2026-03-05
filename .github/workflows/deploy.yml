@@ -2,8 +2,6 @@ name: Deploy Chrome Extension to Store
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*'
 
