@@ -390,8 +390,9 @@
     if (!editor) return;
 
     editor.addEventListener('keydown', (e) => {
-      // Only handle if Ctrl/Cmd is pressed
+      // Only handle if Ctrl/Cmd is pressed and shortcuts are enabled
       if (!(e.ctrlKey || e.metaKey)) return;
+      if (LPS.settings && LPS.settings.keyboardShortcuts === false) return;
 
       switch (e.key.toLowerCase()) {
         case 'b':

@@ -29,7 +29,7 @@
   function loadSettings() {
     chrome.runtime.sendMessage({ type: 'GET_SETTINGS' }, (result) => {
       if (result) {
-        settings = { ...settings, ...result };
+        Object.assign(settings, result);
       }
     });
   }
@@ -41,7 +41,7 @@
     if (changes.lps_settings) {
       const newSettings = changes.lps_settings.newValue;
       if (newSettings) {
-        settings = { ...settings, ...newSettings };
+        Object.assign(settings, newSettings);
         applySettings();
       }
     }
@@ -98,6 +98,7 @@
         if (!editor && toolbarInjected) {
           toolbarInjected = false;
           currentEditor = null;
+          numberedBulletCounter = 0;
         }
       }, 100);
     });
