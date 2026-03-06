@@ -74,6 +74,7 @@
 
     // Templates dropdown
     const templateBtn = createDropdownButton('Templates', openTemplatePanel);
+    templateBtn.classList.add('lps-btn-templates');
 
     // Preview toggle
     const previewBtn = createToolbarButton('Preview', 'Toggle live preview', togglePreview);
@@ -164,6 +165,39 @@
   }
 
   /**
+   * Close the "other" panel so only one is open at a time.
+   * @param {'template'|'preview'} keepOpen - which panel is about to open (skip closing it)
+   */
+  function closeOtherPanel(keepOpen) {
+    if (keepOpen !== 'template') {
+      const tpl = deepQuery('.lps-template-panel');
+      if (tpl) tpl.remove();
+    }
+    if (keepOpen !== 'preview') {
+      const prev = deepQuery('.lps-preview-panel');
+      if (prev) {
+        if (prev._lpsCleanup) prev._lpsCleanup();
+        prev.remove();
+      }
+    }
+    updatePanelButtonStates();
+  }
+
+  /**
+   * Sync the active/highlighted state of the Templates and Preview toolbar buttons
+   * with whether their respective panels are currently open.
+   */
+  function updatePanelButtonStates() {
+    const templatesBtn = deepQuery('.lps-btn-templates');
+    const previewBtn = deepQuery('.lps-btn-preview');
+    const templatesOpen = !!deepQuery('.lps-template-panel');
+    const previewOpen = !!deepQuery('.lps-preview-panel');
+
+    if (templatesBtn) templatesBtn.classList.toggle('lps-active', templatesOpen);
+    if (previewBtn) previewBtn.classList.toggle('lps-active', previewOpen);
+  }
+
+  /**
    * Create a visual divider for the toolbar.
    */
   function createDivider() {
@@ -187,8 +221,12 @@
     const existing = deepQuery('.lps-template-panel');
     if (existing) {
       existing.remove();
+      updatePanelButtonStates();
       return;
     }
+
+    // Close Preview panel first — only one panel at a time
+    closeOtherPanel('template');
 
     const panel = document.createElement('div');
     panel.className = 'lps-template-panel lps-panel';
@@ -200,7 +238,7 @@
     const closeBtn = document.createElement('button');
     closeBtn.className = 'lps-panel-close';
     closeBtn.textContent = '×';
-    closeBtn.addEventListener('click', () => panel.remove());
+    closeBtn.addEventListener('click', () => { panel.remove(); updatePanelButtonStates(); });
     header.appendChild(closeBtn);
 
     const content = document.createElement('div');
@@ -232,6 +270,7 @@
     } else {
       document.body.appendChild(panel);
     }
+    updatePanelButtonStates();
   }
 
   /**
@@ -346,8 +385,12 @@
       // Clean up listener before removing
       if (existing._lpsCleanup) existing._lpsCleanup();
       existing.remove();
+      updatePanelButtonStates();
       return;
     }
+
+    // Close Templates panel first — only one panel at a time
+    closeOtherPanel('preview');
 
     const panel = document.createElement('div');
     panel.className = 'lps-preview-panel lps-panel';
@@ -362,6 +405,7 @@
     closeBtn.addEventListener('click', () => {
       if (panel._lpsCleanup) panel._lpsCleanup();
       panel.remove();
+      updatePanelButtonStates();
     });
     header.appendChild(closeBtn);
 
@@ -409,6 +453,7 @@
     } else {
       document.body.appendChild(panel);
     }
+    updatePanelButtonStates();
   }
 
   /**
