@@ -7,11 +7,19 @@
   'use strict';
 
   const SELECTORS = {
-    // LinkedIn post editor selectors
-    editorContainer: '.share-creation-state__text-editor, .ql-editor, [contenteditable="true"][role="textbox"]',
+    // LinkedIn post editor selectors (multiple selectors for resilience against LinkedIn DOM changes)
+    editorContainer: [
+      '.share-creation-state__text-editor .ql-editor',
+      '.share-creation-state__text-editor [contenteditable="true"]',
+      '.ql-editor[contenteditable="true"]',
+      '[contenteditable="true"][role="textbox"]',
+      '.share-creation-state__text-editor',
+      '.editor-content [contenteditable="true"]',
+      '.ql-editor',
+    ].join(', '),
     shareBox: '.share-box-feed-entry__trigger, .share-creation-state',
     modalEditor: '.share-creation-state__text-editor .ql-editor',
-    postModal: '.share-box--is-open, .artdeco-modal--layer-default',
+    postModal: '.share-box--is-open, .artdeco-modal--layer-default, .artdeco-modal',
   };
 
   let toolbarInjected = false;
@@ -76,6 +84,24 @@
   }
 
   /**
+   * Try to detect and inject toolbar into an editor if present.
+   */
+  function checkAndInjectToolbar() {
+    const editor = findEditor();
+    if (editor && !toolbarInjected) {
+      currentEditor = editor;
+      injectToolbar(editor);
+    }
+
+    // Reset if editor is removed (modal closed)
+    if (!editor && toolbarInjected) {
+      toolbarInjected = false;
+      currentEditor = null;
+      numberedBulletCounter = 0;
+    }
+  }
+
+  /**
    * Wait for the LinkedIn post modal/editor to appear,
    * then inject the toolbar. Uses debounce to avoid excessive DOM queries.
    */
@@ -86,20 +112,7 @@
       if (debounceTimer) return;
       debounceTimer = setTimeout(() => {
         debounceTimer = null;
-
-        const editor = findEditor();
-        if (editor && !toolbarInjected) {
-          currentEditor = editor;
-          injectToolbar(editor);
-          toolbarInjected = true;
-        }
-
-        // Reset if editor is removed (modal closed)
-        if (!editor && toolbarInjected) {
-          toolbarInjected = false;
-          currentEditor = null;
-          numberedBulletCounter = 0;
-        }
+        checkAndInjectToolbar();
       }, 100);
     });
 
@@ -107,28 +120,47 @@
       childList: true,
       subtree: true,
     });
+
+    // Initial check — editor may already be present when scripts load
+    checkAndInjectToolbar();
   }
 
   /**
    * Inject the formatting toolbar above the editor.
+   * Retries if createToolbar is not yet available (toolbar-ui.js still loading).
    */
-  function injectToolbar(editor) {
+  function injectToolbar(editor, retryCount) {
     if (!settings.toolbarEnabled) return;
 
     // Find the best parent container to place toolbar
     const parentContainer =
       editor.closest('.share-creation-state') ||
       editor.closest('.artdeco-modal__content') ||
+      editor.closest('.artdeco-modal') ||
       editor.parentElement;
 
     if (!parentContainer) return;
 
     // Avoid duplicate injection
-    if (parentContainer.querySelector('.lps-toolbar')) return;
+    if (parentContainer.querySelector('.lps-toolbar')) {
+      toolbarInjected = true;
+      return;
+    }
 
-    const toolbar = window.LinkedInPostStudio?.createToolbar?.(editor);
+    const createFn = window.LinkedInPostStudio?.createToolbar;
+    if (!createFn) {
+      // toolbar-ui.js may not have loaded yet — retry a few times
+      const attempt = retryCount || 0;
+      if (attempt < 10) {
+        setTimeout(() => injectToolbar(editor, attempt + 1), 100);
+      }
+      return;
+    }
+
+    const toolbar = createFn(editor);
     if (toolbar) {
       parentContainer.insertBefore(toolbar, parentContainer.firstChild);
+      toolbarInjected = true;
       applySettings();
     }
   }
