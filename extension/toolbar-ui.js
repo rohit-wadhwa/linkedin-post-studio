@@ -421,7 +421,13 @@
       .split('\n')
       .map((line) => {
         if (!line.trim()) return '<br>';
-        const escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        let escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        // Style hashtags like LinkedIn (blue, clickable-looking)
+        escaped = escaped.replace(/(#[A-Za-z][\w]*)/g, '<span class="lps-preview-hashtag">$1</span>');
+        // Style URLs like LinkedIn (blue, underlined)
+        escaped = escaped.replace(/(https?:\/\/[^\s<]+)/g, '<span class="lps-preview-link">$1</span>');
+        // Style @mentions like LinkedIn
+        escaped = escaped.replace(/@([A-Za-z][\w.-]*)/g, '<span class="lps-preview-mention">@$1</span>');
         return `<p>${escaped}</p>`;
       })
       .join('');
