@@ -6,7 +6,10 @@
 (function () {
   'use strict';
 
-  const LPS = window.LinkedInPostStudio || {};
+  // content-script.js runs first and creates window.LinkedInPostStudio
+  // Ensure we always reference the live global so API functions are available
+  window.LinkedInPostStudio = window.LinkedInPostStudio || {};
+  const LPS = window.LinkedInPostStudio;
 
   /**
    * Create the main toolbar element.
@@ -407,7 +410,7 @@
     });
   }
 
-  // Expose toolbar creation
-  LPS.createToolbar = createToolbar;
-  window.LinkedInPostStudio = LPS;
+  // Expose toolbar creation — merge into existing namespace to preserve API from content-script.js
+  window.LinkedInPostStudio = window.LinkedInPostStudio || {};
+  window.LinkedInPostStudio.createToolbar = createToolbar;
 })();
