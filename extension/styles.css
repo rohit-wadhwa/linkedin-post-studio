@@ -9,6 +9,8 @@
 
 .lps-toolbar {
   display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
   align-items: center;
   gap: 4px;
   padding: 6px 10px;
@@ -22,6 +24,8 @@
   position: relative;
   box-sizing: border-box;
   width: 100%;
+  overflow: visible !important;
+  max-height: none !important;
 }
 
 .lps-btn-group {

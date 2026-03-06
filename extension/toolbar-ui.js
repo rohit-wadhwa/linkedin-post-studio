@@ -12,6 +12,24 @@
   const LPS = window.LinkedInPostStudio;
 
   /**
+   * Shadow-DOM-aware querySelector.
+   * Searches the light DOM and known shadow roots (same list as content-script.js).
+   */
+  function deepQuery(selector) {
+    const el = document.querySelector(selector);
+    if (el) return el;
+    const hosts = ['#interop-outlet'];
+    for (const hostSel of hosts) {
+      const host = document.querySelector(hostSel);
+      if (host && host.shadowRoot) {
+        const match = host.shadowRoot.querySelector(selector);
+        if (match) return match;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Create the main toolbar element.
    */
   function createToolbar(editor) {
@@ -19,6 +37,12 @@
     toolbar.className = 'lps-toolbar';
     toolbar.setAttribute('role', 'toolbar');
     toolbar.setAttribute('aria-label', 'LinkedIn Post Studio Toolbar');
+
+    // Prevent the entire toolbar from stealing focus on mousedown
+    // so the editor's text selection stays intact when clicking buttons.
+    toolbar.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+    });
 
     // Formatting buttons group
     const formatGroup = createButtonGroup('Format', [
@@ -98,6 +122,8 @@
 
   /**
    * Create a single toolbar button.
+   * Uses mousedown + preventDefault to keep the editor's text selection alive
+   * (clicking a button normally moves focus and collapses the selection).
    */
   function createToolbarButton(label, title, onClick) {
     const button = document.createElement('button');
@@ -105,6 +131,13 @@
     button.textContent = label;
     button.title = title;
     button.type = 'button';
+
+    // Prevent mousedown from stealing focus / collapsing the editor selection
+    button.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
     button.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -143,7 +176,7 @@
    * Open the template management panel.
    */
   function openTemplatePanel() {
-    const existing = document.querySelector('.lps-template-panel');
+    const existing = deepQuery('.lps-template-panel');
     if (existing) {
       existing.remove();
       return;
@@ -185,7 +218,7 @@
     panel.appendChild(addBtn);
 
     // Insert panel near toolbar
-    const toolbar = document.querySelector('.lps-toolbar');
+    const toolbar = deepQuery('.lps-toolbar');
     if (toolbar) {
       toolbar.parentElement.insertBefore(panel, toolbar.nextSibling);
     } else {
@@ -300,7 +333,7 @@
    * Toggle the live preview panel.
    */
   function togglePreview() {
-    const existing = document.querySelector('.lps-preview-panel');
+    const existing = deepQuery('.lps-preview-panel');
     if (existing) {
       // Clean up listener before removing
       if (existing._lpsCleanup) existing._lpsCleanup();
@@ -362,7 +395,7 @@
     }
 
     // Insert near toolbar
-    const toolbar = document.querySelector('.lps-toolbar');
+    const toolbar = deepQuery('.lps-toolbar');
     if (toolbar) {
       toolbar.parentElement.insertBefore(panel, toolbar.nextSibling);
     } else {
