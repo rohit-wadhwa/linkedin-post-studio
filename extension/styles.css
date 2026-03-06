@@ -9,6 +9,8 @@
 
 .lps-toolbar {
   display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
   align-items: center;
   gap: 4px;
   padding: 6px 10px;
@@ -22,6 +24,8 @@
   position: relative;
   box-sizing: border-box;
   width: 100%;
+  overflow: visible !important;
+  max-height: none !important;
 }
 
 .lps-btn-group {
@@ -277,11 +281,17 @@
   padding: 16px;
   font-size: 14px;
   line-height: 1.5;
-  color: #333;
+  color: rgba(0, 0, 0, 0.9);
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Fira Sans', Ubuntu, Oxygen, 'Oxygen Sans', Cantarell, 'Droid Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Lucida Grande', Helvetica, Arial, sans-serif;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .lps-preview-content p {
   margin: 0 0 4px 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .lps-preview-desktop {
@@ -294,6 +304,41 @@
   border-left: 1px solid #e0e0e0;
   border-right: 1px solid #e0e0e0;
   padding: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+/* LinkedIn-style hashtag rendering */
+.lps-preview-hashtag {
+  color: #0a66c2;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lps-preview-hashtag:hover {
+  text-decoration: underline;
+}
+
+/* LinkedIn-style link rendering */
+.lps-preview-link {
+  color: #0a66c2;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.lps-preview-link:hover {
+  text-decoration: underline;
+}
+
+/* LinkedIn-style mention rendering */
+.lps-preview-mention {
+  color: #0a66c2;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lps-preview-mention:hover {
+  text-decoration: underline;
 }
 
 .lps-preview-empty {
