@@ -66,6 +66,12 @@
       { label: '✦', title: 'Star separator', action: () => LPS.insertSeparator('stars') },
     ]);
 
+    // Link buttons group
+    const linkGroup = createButtonGroup('Links', [
+      { label: '🔗+', title: 'Insert link reference', action: () => LPS.insertLink(), className: 'lps-btn-link' },
+      { label: '🔗×', title: 'Remove link reference', action: () => LPS.removeLink(), className: 'lps-btn-unlink' },
+    ]);
+
     // Templates dropdown
     const templateBtn = createDropdownButton('Templates', openTemplatePanel);
 
@@ -84,6 +90,8 @@
     toolbar.appendChild(listGroup);
     toolbar.appendChild(createDivider());
     toolbar.appendChild(sepGroup);
+    toolbar.appendChild(createDivider());
+    toolbar.appendChild(linkGroup);
     toolbar.appendChild(createDivider());
     toolbar.appendChild(templateBtn);
     toolbar.appendChild(previewBtn);

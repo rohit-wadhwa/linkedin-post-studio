@@ -419,18 +419,64 @@
     if (!selection || !selection.rangeCount) {
       selection = window.getSelection();
     }
-    if (!selection || !selection.rangeCount) return;
 
-    const range = selection.getRangeAt(0);
-    range.deleteContents();
+    // If no valid selection, or selection is outside the editor, place cursor
+    // at the end of the editor content.
+    let range;
+    if (selection && selection.rangeCount) {
+      range = selection.getRangeAt(0);
+      // Verify the range is inside the editor
+      if (!editor.contains(range.commonAncestorContainer)) {
+        lpsDebug('insertTextAtCursor: selection outside editor, moving to end');
+        range = document.createRange();
+        range.selectNodeContents(editor);
+        range.collapse(false); // collapse to end
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    } else {
+      lpsDebug('insertTextAtCursor: no selection, creating at end');
+      range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false); // collapse to end
+      if (!selection) return;
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
 
-    const textNode = document.createTextNode(text);
-    range.insertNode(textNode);
+    // Delete any selected content (relevant when replacing selected text)
+    if (!range.collapsed) {
+      range.deleteContents();
+    }
 
-    range.setStartAfter(textNode);
-    range.setEndAfter(textNode);
-    selection.removeAllRanges();
-    selection.addRange(range);
+    // In contenteditable, '\n' in a text node renders as whitespace, not a
+    // line break.  Split on newlines and insert <br> elements between parts.
+    const parts = text.split('\n');
+    const frag = document.createDocumentFragment();
+    let lastNode = null;
+
+    parts.forEach((part, i) => {
+      if (i > 0) {
+        const br = document.createElement('br');
+        frag.appendChild(br);
+        lastNode = br;
+      }
+      if (part) {
+        const tn = document.createTextNode(part);
+        frag.appendChild(tn);
+        lastNode = tn;
+      }
+    });
+
+    range.insertNode(frag);
+
+    // Place cursor after the last inserted node
+    if (lastNode) {
+      range.setStartAfter(lastNode);
+      range.setEndAfter(lastNode);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
 
     editor.dispatchEvent(new Event('input', { bubbles: true }));
   }
@@ -520,6 +566,67 @@
     insertTextAtCursor(separators[style] || separators.line);
   }
 
+  /**
+   * Insert a formatted link reference into the editor.
+   * LinkedIn does not support clickable hyperlinks in post text,
+   * so we insert a readable URL reference format instead.
+   */
+  function insertLink() {
+    const url = prompt('Enter URL:');
+    if (!url || !url.trim()) return;
+
+    const label = prompt('Enter link label (optional — leave blank to show URL only):');
+    let linkText;
+    if (label && label.trim()) {
+      linkText = '\n🔗 ' + label.trim() + ' → ' + url.trim() + '\n';
+    } else {
+      linkText = '\n🔗 ' + url.trim() + '\n';
+    }
+    insertTextAtCursor(linkText);
+  }
+
+  /**
+   * Remove a link reference pattern from the current selection.
+   * Strips the 🔗 prefix and → URL suffix, leaving just the label text.
+   */
+  function removeLink() {
+    const editor = getActiveEditor();
+    if (!editor) return;
+
+    const editorRoot = editor.getRootNode();
+    let selection = null;
+    if (editorRoot instanceof ShadowRoot && editorRoot.getSelection) {
+      selection = editorRoot.getSelection();
+    }
+    if (!selection || !selection.rangeCount) {
+      selection = window.getSelection();
+    }
+    if (!selection || !selection.rangeCount) return;
+
+    const selectedText = selection.toString();
+    if (!selectedText) {
+      alert('Select a link reference (🔗 ...) to remove it.');
+      return;
+    }
+
+    // Strip link formatting: "🔗 Label → URL" → "Label"  or  "🔗 URL" → ""
+    let cleaned = selectedText.replace(/🔗\s*/, '');
+    const arrowIdx = cleaned.indexOf(' → ');
+    if (arrowIdx !== -1) {
+      cleaned = cleaned.substring(0, arrowIdx).trim();
+    } else {
+      // No arrow means it was URL-only, remove entirely
+      cleaned = '';
+    }
+
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+    if (cleaned) {
+      range.insertNode(document.createTextNode(cleaned));
+    }
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
   function getEditorStats() {
     const editor = getActiveEditor();
     if (!editor) return { chars: 0, words: 0, lines: 0 };
@@ -544,6 +651,8 @@
     applyUnicodeFormat,
     insertBullet,
     insertSeparator,
+    insertLink,
+    removeLink,
     getEditorStats,
     incrementStat,
     resetNumberedCounter,
