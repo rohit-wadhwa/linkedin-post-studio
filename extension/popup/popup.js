@@ -55,6 +55,12 @@ function setupEventListeners() {
     chrome.tabs.create({ url: 'https://www.linkedin.com/feed/' });
   });
 
+  // Buy Me a Coffee — open via chrome.tabs for reliability in popup context
+  document.getElementById('btn-bmc').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: 'https://www.buymeacoffee.com/rohit.wadhwa' });
+  });
+
   // Manage templates - switch to LinkedIn tab or open it
   document.getElementById('btn-manage-templates').addEventListener('click', () => {
     chrome.tabs.query({ url: 'https://www.linkedin.com/*' }, (tabs) => {

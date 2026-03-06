@@ -12,6 +12,24 @@
   const LPS = window.LinkedInPostStudio;
 
   /**
+   * Shadow-DOM-aware querySelector.
+   * Searches the light DOM and known shadow roots (same list as content-script.js).
+   */
+  function deepQuery(selector) {
+    const el = document.querySelector(selector);
+    if (el) return el;
+    const hosts = ['#interop-outlet'];
+    for (const hostSel of hosts) {
+      const host = document.querySelector(hostSel);
+      if (host && host.shadowRoot) {
+        const match = host.shadowRoot.querySelector(selector);
+        if (match) return match;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Create the main toolbar element.
    */
   function createToolbar(editor) {
@@ -19,6 +37,12 @@
     toolbar.className = 'lps-toolbar';
     toolbar.setAttribute('role', 'toolbar');
     toolbar.setAttribute('aria-label', 'LinkedIn Post Studio Toolbar');
+
+    // Prevent the entire toolbar from stealing focus on mousedown
+    // so the editor's text selection stays intact when clicking buttons.
+    toolbar.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+    });
 
     // Formatting buttons group
     const formatGroup = createButtonGroup('Format', [
@@ -42,8 +66,15 @@
       { label: '✦', title: 'Star separator', action: () => LPS.insertSeparator('stars') },
     ]);
 
+    // Link buttons group
+    const linkGroup = createButtonGroup('Links', [
+      { label: '🔗+', title: 'Insert link reference', action: () => LPS.insertLink(), className: 'lps-btn-link' },
+      { label: '🔗×', title: 'Remove link reference', action: () => LPS.removeLink(), className: 'lps-btn-unlink' },
+    ]);
+
     // Templates dropdown
     const templateBtn = createDropdownButton('Templates', openTemplatePanel);
+    templateBtn.classList.add('lps-btn-templates');
 
     // Preview toggle
     const previewBtn = createToolbarButton('Preview', 'Toggle live preview', togglePreview);
@@ -60,6 +91,8 @@
     toolbar.appendChild(listGroup);
     toolbar.appendChild(createDivider());
     toolbar.appendChild(sepGroup);
+    toolbar.appendChild(createDivider());
+    toolbar.appendChild(linkGroup);
     toolbar.appendChild(createDivider());
     toolbar.appendChild(templateBtn);
     toolbar.appendChild(previewBtn);
@@ -98,6 +131,8 @@
 
   /**
    * Create a single toolbar button.
+   * Uses mousedown + preventDefault to keep the editor's text selection alive
+   * (clicking a button normally moves focus and collapses the selection).
    */
   function createToolbarButton(label, title, onClick) {
     const button = document.createElement('button');
@@ -105,6 +140,13 @@
     button.textContent = label;
     button.title = title;
     button.type = 'button';
+
+    // Prevent mousedown from stealing focus / collapsing the editor selection
+    button.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
     button.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -120,6 +162,39 @@
     const button = createToolbarButton(label + ' ▾', 'Open ' + label.toLowerCase(), onClick);
     button.classList.add('lps-btn-dropdown');
     return button;
+  }
+
+  /**
+   * Close the "other" panel so only one is open at a time.
+   * @param {'template'|'preview'} keepOpen - which panel is about to open (skip closing it)
+   */
+  function closeOtherPanel(keepOpen) {
+    if (keepOpen !== 'template') {
+      const tpl = deepQuery('.lps-template-panel');
+      if (tpl) tpl.remove();
+    }
+    if (keepOpen !== 'preview') {
+      const prev = deepQuery('.lps-preview-panel');
+      if (prev) {
+        if (prev._lpsCleanup) prev._lpsCleanup();
+        prev.remove();
+      }
+    }
+    updatePanelButtonStates();
+  }
+
+  /**
+   * Sync the active/highlighted state of the Templates and Preview toolbar buttons
+   * with whether their respective panels are currently open.
+   */
+  function updatePanelButtonStates() {
+    const templatesBtn = deepQuery('.lps-btn-templates');
+    const previewBtn = deepQuery('.lps-btn-preview');
+    const templatesOpen = !!deepQuery('.lps-template-panel');
+    const previewOpen = !!deepQuery('.lps-preview-panel');
+
+    if (templatesBtn) templatesBtn.classList.toggle('lps-active', templatesOpen);
+    if (previewBtn) previewBtn.classList.toggle('lps-active', previewOpen);
   }
 
   /**
@@ -143,11 +218,15 @@
    * Open the template management panel.
    */
   function openTemplatePanel() {
-    const existing = document.querySelector('.lps-template-panel');
+    const existing = deepQuery('.lps-template-panel');
     if (existing) {
       existing.remove();
+      updatePanelButtonStates();
       return;
     }
+
+    // Close Preview panel first — only one panel at a time
+    closeOtherPanel('template');
 
     const panel = document.createElement('div');
     panel.className = 'lps-template-panel lps-panel';
@@ -159,7 +238,7 @@
     const closeBtn = document.createElement('button');
     closeBtn.className = 'lps-panel-close';
     closeBtn.textContent = '×';
-    closeBtn.addEventListener('click', () => panel.remove());
+    closeBtn.addEventListener('click', () => { panel.remove(); updatePanelButtonStates(); });
     header.appendChild(closeBtn);
 
     const content = document.createElement('div');
@@ -185,12 +264,13 @@
     panel.appendChild(addBtn);
 
     // Insert panel near toolbar
-    const toolbar = document.querySelector('.lps-toolbar');
+    const toolbar = deepQuery('.lps-toolbar');
     if (toolbar) {
       toolbar.parentElement.insertBefore(panel, toolbar.nextSibling);
     } else {
       document.body.appendChild(panel);
     }
+    updatePanelButtonStates();
   }
 
   /**
@@ -300,13 +380,17 @@
    * Toggle the live preview panel.
    */
   function togglePreview() {
-    const existing = document.querySelector('.lps-preview-panel');
+    const existing = deepQuery('.lps-preview-panel');
     if (existing) {
       // Clean up listener before removing
       if (existing._lpsCleanup) existing._lpsCleanup();
       existing.remove();
+      updatePanelButtonStates();
       return;
     }
+
+    // Close Templates panel first — only one panel at a time
+    closeOtherPanel('preview');
 
     const panel = document.createElement('div');
     panel.className = 'lps-preview-panel lps-panel';
@@ -321,6 +405,7 @@
     closeBtn.addEventListener('click', () => {
       if (panel._lpsCleanup) panel._lpsCleanup();
       panel.remove();
+      updatePanelButtonStates();
     });
     header.appendChild(closeBtn);
 
@@ -362,12 +447,13 @@
     }
 
     // Insert near toolbar
-    const toolbar = document.querySelector('.lps-toolbar');
+    const toolbar = deepQuery('.lps-toolbar');
     if (toolbar) {
       toolbar.parentElement.insertBefore(panel, toolbar.nextSibling);
     } else {
       document.body.appendChild(panel);
     }
+    updatePanelButtonStates();
   }
 
   /**
@@ -380,7 +466,13 @@
       .split('\n')
       .map((line) => {
         if (!line.trim()) return '<br>';
-        const escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        let escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        // Style hashtags like LinkedIn (blue, clickable-looking)
+        escaped = escaped.replace(/(#[A-Za-z][\w]*)/g, '<span class="lps-preview-hashtag">$1</span>');
+        // Style URLs like LinkedIn (blue, underlined)
+        escaped = escaped.replace(/(https?:\/\/[^\s<]+)/g, '<span class="lps-preview-link">$1</span>');
+        // Style @mentions like LinkedIn
+        escaped = escaped.replace(/@([A-Za-z][\w.-]*)/g, '<span class="lps-preview-mention">@$1</span>');
         return `<p>${escaped}</p>`;
       })
       .join('');
