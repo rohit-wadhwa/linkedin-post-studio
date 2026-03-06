@@ -23,6 +23,7 @@
   };
 
   let toolbarInjected = false;
+  let toolbarInjecting = false; // Prevents duplicate retry chains
   let currentEditor = null;
   let settings = {
     toolbarEnabled: true,
@@ -61,7 +62,11 @@
   function applySettings() {
     const toolbar = document.querySelector('.lps-toolbar');
     if (toolbar) {
-      toolbar.style.display = settings.toolbarEnabled ? '' : 'none';
+      if (settings.toolbarEnabled) {
+        toolbar.style.removeProperty('display');
+      } else {
+        toolbar.style.setProperty('display', 'none', 'important');
+      }
     }
     const stats = document.querySelector('.lps-stats');
     if (stats) {
@@ -88,14 +93,15 @@
    */
   function checkAndInjectToolbar() {
     const editor = findEditor();
-    if (editor && !toolbarInjected) {
+    if (editor && !toolbarInjected && !toolbarInjecting) {
       currentEditor = editor;
       injectToolbar(editor);
     }
 
     // Reset if editor is removed (modal closed)
-    if (!editor && toolbarInjected) {
+    if (!editor && (toolbarInjected || toolbarInjecting)) {
       toolbarInjected = false;
+      toolbarInjecting = false;
       currentEditor = null;
       numberedBulletCounter = 0;
     }
@@ -130,7 +136,15 @@
    * Retries if createToolbar is not yet available (toolbar-ui.js still loading).
    */
   function injectToolbar(editor, retryCount) {
+    // Guard against stale editor references (e.g., modal closed during retry)
+    if (!editor.isConnected) {
+      toolbarInjecting = false;
+      return;
+    }
+
     if (!settings.toolbarEnabled) return;
+
+    toolbarInjecting = true;
 
     // Find the best parent container to place toolbar
     const parentContainer =
@@ -139,11 +153,15 @@
       editor.closest('.artdeco-modal') ||
       editor.parentElement;
 
-    if (!parentContainer) return;
+    if (!parentContainer) {
+      toolbarInjecting = false;
+      return;
+    }
 
     // Avoid duplicate injection
     if (parentContainer.querySelector('.lps-toolbar')) {
       toolbarInjected = true;
+      toolbarInjecting = false;
       return;
     }
 
@@ -153,6 +171,8 @@
       const attempt = retryCount || 0;
       if (attempt < 10) {
         setTimeout(() => injectToolbar(editor, attempt + 1), 100);
+      } else {
+        toolbarInjecting = false;
       }
       return;
     }
@@ -163,6 +183,7 @@
       toolbarInjected = true;
       applySettings();
     }
+    toolbarInjecting = false;
   }
 
   /**
