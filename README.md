@@ -116,4 +116,4 @@ Built to solve the frustration of writing formatted LinkedIn posts without exter
 
 [![Github Hits](https://hits.sh/github.com/rohit-wadhwa/linkedin-post-studio.svg)](https://github.com/rohit-wadhwa/linkedin-post-studio/)
 
-Project Link: [https://github.com/rohit-wadhwa/linkedin-post-studio](https://github.com/rohit-wadhwa/linkedin-post-studio)
+Chrome Web Store Link: [https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol](https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol)
