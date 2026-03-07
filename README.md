@@ -1,5 +1,10 @@
 # LinkedIn Post Studio
 
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/lcdkgjcfpahnnkjkllicbfijiihdjgol?style=for-the-badge&logo=googlechrome&logoColor=white&label=Chrome%20Web%20Store&color=4285F4)](https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol)
+[![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/lcdkgjcfpahnnkjkllicbfijiihdjgol?style=for-the-badge&logo=googlechrome&logoColor=white&label=Users&color=34A853)](https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol)
+[![Chrome Web Store Rating](https://img.shields.io/chrome-web-store/rating/lcdkgjcfpahnnkjkllicbfijiihdjgol?style=for-the-badge&logo=googlechrome&logoColor=white&label=Rating&color=FBBC05)](https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+
 > Write better LinkedIn posts directly inside LinkedIn.
 
 A Chrome extension that enhances the LinkedIn post editor with formatting tools, reusable templates, and live preview features to help users write clean, structured, and engaging posts directly inside LinkedIn.
@@ -16,6 +21,12 @@ A Chrome extension that enhances the LinkedIn post editor with formatting tools,
 - **Template Import/Export** — Share templates as JSON files
 
 ## Installation
+
+### From Chrome Web Store (Recommended)
+
+<a href="https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol">
+  <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png" alt="Available in the Chrome Web Store" width="248" height="75">
+</a>
 
 ### From Source (Developer Mode)
 
@@ -116,4 +127,10 @@ Built to solve the frustration of writing formatted LinkedIn posts without exter
 
 [![Github Hits](https://hits.sh/github.com/rohit-wadhwa/linkedin-post-studio.svg)](https://github.com/rohit-wadhwa/linkedin-post-studio/)
 
-Chrome Web Store Link: [https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol](https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol)
+---
+
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol">
+    <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png" alt="Available in the Chrome Web Store" width="248" height="75">
+  </a>
+</p>
