@@ -508,24 +508,51 @@
     }
 
     const selectedText = selection.toString();
-    const formatted = convertToUnicode(selectedText, type);
-    lpsDebug('formatted:', type, selectedText, '→', formatted);
+
+    // Toggle logic: if text is already in the target format, revert to plain.
+    // If text is in any other Unicode format, revert to plain first then apply.
+    const detectedFormat = detectUnicodeFormat(selectedText);
+    let formatted;
+    if (detectedFormat === type) {
+      // Already this format — toggle OFF (revert to normal)
+      formatted = revertFromUnicode(selectedText);
+      lpsDebug('toggle OFF:', type, selectedText, '→', formatted);
+    } else if (detectedFormat && detectedFormat !== type) {
+      // In a different format — revert first, then apply new format
+      const plain = revertFromUnicode(selectedText);
+      formatted = convertToUnicode(plain, type);
+      lpsDebug('switch format:', detectedFormat, '→', type, selectedText, '→', formatted);
+    } else {
+      // Plain text — apply format
+      formatted = convertToUnicode(selectedText, type);
+      lpsDebug('apply format:', type, selectedText, '→', formatted);
+    }
 
     const range = selection.getRangeAt(0);
     range.deleteContents();
-    range.insertNode(document.createTextNode(formatted));
+    const textNode = document.createTextNode(formatted);
+    range.insertNode(textNode);
+
+    // Re-select the formatted text so the user sees what was changed
+    // and can toggle again without re-selecting manually.
+    range.setStartBefore(textNode);
+    range.setEndAfter(textNode);
+    selection.removeAllRanges();
+    selection.addRange(range);
 
     editor.dispatchEvent(new Event('input', { bubbles: true }));
     incrementStat('postsFormatted');
   }
 
+  // Unicode Mathematical Alphanumeric ranges for formatting
+  const UNICODE_RANGES = {
+    bold:       { upper: 0x1d400, lower: 0x1d41a, digitStart: 0x1d7ce },
+    italic:     { upper: 0x1d434, lower: 0x1d44e },
+    boldItalic: { upper: 0x1d468, lower: 0x1d482 },
+  };
+
   function convertToUnicode(text, type) {
-    const maps = {
-      bold: { upper: 0x1d400, lower: 0x1d41a, digitStart: 0x1d7ce },
-      italic: { upper: 0x1d434, lower: 0x1d44e },
-      boldItalic: { upper: 0x1d468, lower: 0x1d482 },
-    };
-    const map = maps[type];
+    const map = UNICODE_RANGES[type];
     if (!map) return text;
 
     return Array.from(text)
@@ -537,6 +564,60 @@
           return String.fromCodePoint(map.lower + (code - 97));
         if (code >= 48 && code <= 57 && map.digitStart)
           return String.fromCodePoint(map.digitStart + (code - 48));
+        return char;
+      })
+      .join('');
+  }
+
+  /**
+   * Detect if text is already in a Unicode formatted style.
+   * Checks the first alphabetic character to determine the format.
+   * Returns 'bold', 'italic', 'boldItalic', or null if plain.
+   */
+  function detectUnicodeFormat(text) {
+    for (const char of text) {
+      const cp = char.codePointAt(0);
+      // Skip non-letter characters (spaces, punctuation, emoji, etc.)
+      if (cp < 0x1d400) continue;
+
+      // Bold uppercase: U+1D400–U+1D419, lowercase: U+1D41A–U+1D433
+      if ((cp >= 0x1d400 && cp <= 0x1d419) || (cp >= 0x1d41a && cp <= 0x1d433)) return 'bold';
+      // Bold digits: U+1D7CE–U+1D7D7
+      if (cp >= 0x1d7ce && cp <= 0x1d7d7) return 'bold';
+      // Italic uppercase: U+1D434–U+1D44D, lowercase: U+1D44E–U+1D467
+      if ((cp >= 0x1d434 && cp <= 0x1d44d) || (cp >= 0x1d44e && cp <= 0x1d467)) return 'italic';
+      // Bold-Italic uppercase: U+1D468–U+1D481, lowercase: U+1D482–U+1D49B
+      if ((cp >= 0x1d468 && cp <= 0x1d481) || (cp >= 0x1d482 && cp <= 0x1d49b)) return 'boldItalic';
+    }
+    return null;
+  }
+
+  /**
+   * Revert Unicode-formatted text back to plain ASCII.
+   * Handles bold, italic, and bold-italic ranges.
+   */
+  function revertFromUnicode(text) {
+    return Array.from(text)
+      .map((char) => {
+        const cp = char.codePointAt(0);
+
+        // Bold uppercase → A-Z
+        if (cp >= 0x1d400 && cp <= 0x1d419) return String.fromCharCode(65 + (cp - 0x1d400));
+        // Bold lowercase → a-z
+        if (cp >= 0x1d41a && cp <= 0x1d433) return String.fromCharCode(97 + (cp - 0x1d41a));
+        // Bold digits → 0-9
+        if (cp >= 0x1d7ce && cp <= 0x1d7d7) return String.fromCharCode(48 + (cp - 0x1d7ce));
+
+        // Italic uppercase → A-Z
+        if (cp >= 0x1d434 && cp <= 0x1d44d) return String.fromCharCode(65 + (cp - 0x1d434));
+        // Italic lowercase → a-z
+        if (cp >= 0x1d44e && cp <= 0x1d467) return String.fromCharCode(97 + (cp - 0x1d44e));
+
+        // Bold-Italic uppercase → A-Z
+        if (cp >= 0x1d468 && cp <= 0x1d481) return String.fromCharCode(65 + (cp - 0x1d468));
+        // Bold-Italic lowercase → a-z
+        if (cp >= 0x1d482 && cp <= 0x1d49b) return String.fromCharCode(97 + (cp - 0x1d482));
+
         return char;
       })
       .join('');
@@ -649,6 +730,8 @@
     getActiveEditor,
     insertTextAtCursor,
     applyUnicodeFormat,
+    detectUnicodeFormat,
+    revertFromUnicode,
     insertBullet,
     insertSeparator,
     insertLink,
