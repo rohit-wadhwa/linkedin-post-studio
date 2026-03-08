@@ -129,8 +129,4 @@ Built to solve the frustration of writing formatted LinkedIn posts without exter
 
 ---
 
-<p align="center">
-  <a href="https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol">
-    <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png" alt="Available in the Chrome Web Store" width="248" height="75">
-  </a>
-</p>
+[![Available in the Chrome Web Store](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png)](https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol)
