@@ -24,9 +24,7 @@ A Chrome extension that enhances the LinkedIn post editor with formatting tools,
 
 ### From Chrome Web Store (Recommended)
 
-<a href="https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol">
-  <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png" alt="Available in the Chrome Web Store" width="248" height="75">
-</a>
+[![Available in the Chrome Web Store](https://raw.githubusercontent.com/GoogleChrome/webstore-docs/master/images/ChromeWebStore_BadgeWBorder_v2_206x58.png)](https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol)
 
 ### From Source (Developer Mode)
 
@@ -129,4 +127,4 @@ Built to solve the frustration of writing formatted LinkedIn posts without exter
 
 ---
 
-[![Available in the Chrome Web Store](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png)](https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol)
+[![Available in the Chrome Web Store](https://raw.githubusercontent.com/GoogleChrome/webstore-docs/master/images/ChromeWebStore_BadgeWBorder_v2_206x58.png)](https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol)
