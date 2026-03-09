@@ -4,6 +4,25 @@ All notable changes to LinkedIn Post Studio will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-03-09
+
+### Fixed
+- Bold/italic formatting can now be toggled OFF (was one-way only)
+- Selection no longer expands to the entire line after formatting
+
+### Added
+- Format switching: click a different format to switch directly (e.g., bold to italic)
+- Browser-based QA test harness with 54 automated tests
+- Link/Unlink toolbar buttons
+- Buy Me a Coffee button in extension popup
+- Single-panel UX: template and preview panels are now mutually exclusive
+- LinkedIn-style hashtag, link, and mention rendering in preview panel
+
+### Changed
+- Extracted `UNICODE_RANGES` as module-level constant for readability
+- Improved toolbar injection for LinkedIn Shadow DOM migration
+- Enhanced mobile overflow handling in preview panel
+
 ## [1.0.0] - 2026-03-05
 
 ### Added
