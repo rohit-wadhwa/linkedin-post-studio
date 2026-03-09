@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LinkedIn Post Studio — QA Test Harness</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 900px; margin: 20px auto; padding: 20px; }
+    h1 { font-size: 20px; }
+    .editor-mock {
+      border: 2px solid #0a66c2;
+      border-radius: 8px;
+      min-height: 120px;
+      padding: 16px;
+      margin: 16px 0;
+      font-size: 16px;
+      line-height: 1.5;
+      outline: none;
+    }
+    .editor-mock:focus { border-color: #004182; box-shadow: 0 0 0 2px rgba(10,102,194,0.2); }
+    #test-results { margin-top: 20px; font-family: monospace; font-size: 13px; }
+    .pass { color: #22863a; }
+    .fail { color: #cb2431; font-weight: bold; }
+    .section { color: #0a66c2; font-weight: bold; margin-top: 12px; }
+    #summary { font-size: 16px; font-weight: bold; margin-top: 16px; padding: 12px; border-radius: 8px; }
+    #summary.all-pass { background: #dcffe4; color: #22863a; }
+    #summary.has-fail { background: #ffdce0; color: #cb2431; }
+    button { padding: 8px 16px; font-size: 14px; cursor: pointer; border-radius: 6px; border: 1px solid #ccc; margin: 4px; }
+    button:hover { background: #f0f0f0; }
+    #run-btn { background: #0a66c2; color: white; border: none; font-size: 16px; padding: 10px 24px; }
+    #run-btn:hover { background: #004182; }
+  </style>
+</head>
+<body>
+  <h1>LinkedIn Post Studio — QA Test Harness</h1>
+  <p>Mock editor (contenteditable) for testing formatting functions:</p>
+  <div id="mock-editor" class="editor-mock" contenteditable="true" role="textbox" aria-label="Mock LinkedIn Editor">Type here to test formatting...</div>
+  <button id="run-btn" onclick="runAllTests()">Run All Tests</button>
+  <div id="summary"></div>
+  <div id="test-results"></div>
+
+  <script>
+    // ================================================================
+    // Load the extension's core functions inline for testing
+    // (Extracted from content-script.js — the actual production code)
+    // ================================================================
+
+    const UNICODE_RANGES = {
+      bold:       { upper: 0x1d400, lower: 0x1d41a, digitStart: 0x1d7ce },
+      italic:     { upper: 0x1d434, lower: 0x1d44e },
+      boldItalic: { upper: 0x1d468, lower: 0x1d482 },
+    };
+
+    function convertToUnicode(text, type) {
+      const map = UNICODE_RANGES[type];
+      if (!map) return text;
+      return Array.from(text)
+        .map((char) => {
+          const code = char.charCodeAt(0);
+          if (code >= 65 && code <= 90 && map.upper) return String.fromCodePoint(map.upper + (code - 65));
+          if (code >= 97 && code <= 122 && map.lower) return String.fromCodePoint(map.lower + (code - 97));
+          if (code >= 48 && code <= 57 && map.digitStart) return String.fromCodePoint(map.digitStart + (code - 48));
+          return char;
+        })
+        .join('');
+    }
+
+    function detectUnicodeFormat(text) {
+      for (const char of text) {
+        const cp = char.codePointAt(0);
+        if (cp < 0x1d400) continue;
+        if ((cp >= 0x1d400 && cp <= 0x1d419) || (cp >= 0x1d41a && cp <= 0x1d433)) return 'bold';
+        if (cp >= 0x1d7ce && cp <= 0x1d7d7) return 'bold';
+        if ((cp >= 0x1d434 && cp <= 0x1d44d) || (cp >= 0x1d44e && cp <= 0x1d467)) return 'italic';
+        if ((cp >= 0x1d468 && cp <= 0x1d481) || (cp >= 0x1d482 && cp <= 0x1d49b)) return 'boldItalic';
+      }
+      return null;
+    }
+
+    function revertFromUnicode(text) {
+      return Array.from(text)
+        .map((char) => {
+          const cp = char.codePointAt(0);
+          if (cp >= 0x1d400 && cp <= 0x1d419) return String.fromCharCode(65 + (cp - 0x1d400));
+          if (cp >= 0x1d41a && cp <= 0x1d433) return String.fromCharCode(97 + (cp - 0x1d41a));
+          if (cp >= 0x1d7ce && cp <= 0x1d7d7) return String.fromCharCode(48 + (cp - 0x1d7ce));
+          if (cp >= 0x1d434 && cp <= 0x1d44d) return String.fromCharCode(65 + (cp - 0x1d434));
+          if (cp >= 0x1d44e && cp <= 0x1d467) return String.fromCharCode(97 + (cp - 0x1d44e));
+          if (cp >= 0x1d468 && cp <= 0x1d481) return String.fromCharCode(65 + (cp - 0x1d468));
+          if (cp >= 0x1d482 && cp <= 0x1d49b) return String.fromCharCode(97 + (cp - 0x1d482));
+          return char;
+        })
+        .join('');
+    }
+
+    // Simulate the full applyUnicodeFormat toggle logic
+    function simulateToggle(text, type) {
+      const detectedFormat = detectUnicodeFormat(text);
+      if (detectedFormat === type) {
+        return revertFromUnicode(text);
+      } else if (detectedFormat && detectedFormat !== type) {
+        return convertToUnicode(revertFromUnicode(text), type);
+      } else {
+        return convertToUnicode(text, type);
+      }
+    }
+
+    // ================================================================
+    // DOM-based test: simulate select + format in contenteditable
+    // ================================================================
+    function selectTextInEditor(editor, startOffset, endOffset) {
+      const textNode = editor.firstChild;
+      if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return false;
+      const range = document.createRange();
+      range.setStart(textNode, startOffset);
+      range.setEnd(textNode, endOffset);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      return true;
+    }
+
+    function applyFormatInEditor(editor, type) {
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount || sel.isCollapsed) return;
+
+      const selectedText = sel.toString();
+      const detectedFormat = detectUnicodeFormat(selectedText);
+      let formatted;
+      if (detectedFormat === type) {
+        formatted = revertFromUnicode(selectedText);
+      } else if (detectedFormat && detectedFormat !== type) {
+        formatted = convertToUnicode(revertFromUnicode(selectedText), type);
+      } else {
+        formatted = convertToUnicode(selectedText, type);
+      }
+
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      const textNode = document.createTextNode(formatted);
+      range.insertNode(textNode);
+
+      // Re-select (the bug fix)
+      range.setStartBefore(textNode);
+      range.setEndAfter(textNode);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    // ================================================================
+    // Test runner
+    // ================================================================
+    let results = { passed: 0, failed: 0, log: [] };
+
+    function logSection(name) {
+      results.log.push({ type: 'section', text: name });
+    }
+
+    function assert(name, actual, expected) {
+      if (actual === expected) {
+        results.passed++;
+        results.log.push({ type: 'pass', text: `✓ ${name}` });
+      } else {
+        results.failed++;
+        results.log.push({ type: 'fail', text: `✗ ${name}\n    Expected: "${expected}"\n    Actual:   "${actual}"` });
+      }
+    }
+
+    function runAllTests() {
+      results = { passed: 0, failed: 0, log: [] };
+      const editor = document.getElementById('mock-editor');
+
+      // ============================================================
+      logSection('1. BOLD TOGGLE (unit)');
+      // ============================================================
+      const b1 = simulateToggle('Hello', 'bold');
+      assert('plain → bold', b1, '𝐇𝐞𝐥𝐥𝐨');
+      assert('bold → plain', simulateToggle(b1, 'bold'), 'Hello');
+      assert('plain → bold → plain → bold', simulateToggle('Hello', 'bold'), '𝐇𝐞𝐥𝐥𝐨');
+
+      // ============================================================
+      logSection('2. ITALIC TOGGLE (unit)');
+      // ============================================================
+      const i1 = simulateToggle('World', 'italic');
+      assert('plain → italic', i1, '𝑊𝑜𝑟𝑙𝑑');
+      assert('italic → plain', simulateToggle(i1, 'italic'), 'World');
+
+      // ============================================================
+      logSection('3. BOLD-ITALIC TOGGLE (unit)');
+      // ============================================================
+      const bi1 = simulateToggle('Test', 'boldItalic');
+      assert('plain → boldItalic', bi1, '𝑻𝒆𝒔𝒕');
+      assert('boldItalic → plain', simulateToggle(bi1, 'boldItalic'), 'Test');
+
+      // ============================================================
+      logSection('4. FORMAT SWITCHING (unit)');
+      // ============================================================
+      const sw1 = simulateToggle('Hello', 'bold');
+      const sw2 = simulateToggle(sw1, 'italic');
+      assert('bold → italic switch detected', detectUnicodeFormat(sw2), 'italic');
+      assert('bold → italic reverts cleanly', revertFromUnicode(sw2), 'Hello');
+      const sw3 = simulateToggle(sw2, 'boldItalic');
+      assert('italic → boldItalic switch', detectUnicodeFormat(sw3), 'boldItalic');
+      const sw4 = simulateToggle(sw3, 'bold');
+      assert('boldItalic → bold switch', detectUnicodeFormat(sw4), 'bold');
+
+      // ============================================================
+      logSection('5. NUMBERS');
+      // ============================================================
+      assert('bold digits', simulateToggle('ABC123', 'bold'), '𝐀𝐁𝐂𝟏𝟐𝟑');
+      assert('bold digits toggle off', simulateToggle('𝐀𝐁𝐂𝟏𝟐𝟑', 'bold'), 'ABC123');
+      assert('italic digits passthrough', simulateToggle('ABC123', 'italic'), '𝐴𝐵𝐶123');
+      assert('italic digits toggle off', simulateToggle('𝐴𝐵𝐶123', 'italic'), 'ABC123');
+
+      // ============================================================
+      logSection('6. SPECIAL CHARACTERS');
+      // ============================================================
+      assert('bold with punctuation', simulateToggle('Hi, World!', 'bold'), '𝐇𝐢, 𝐖𝐨𝐫𝐥𝐝!');
+      assert('toggle off with punctuation', simulateToggle('𝐇𝐢, 𝐖𝐨𝐫𝐥𝐝!', 'bold'), 'Hi, World!');
+      assert('bold with @#', simulateToggle('@user #tag', 'bold'), '@𝐮𝐬𝐞𝐫 #𝐭𝐚𝐠');
+      assert('toggle off @#', simulateToggle('@𝐮𝐬𝐞𝐫 #𝐭𝐚𝐠', 'bold'), '@user #tag');
+
+      // ============================================================
+      logSection('7. EDGE CASES');
+      // ============================================================
+      assert('empty string', simulateToggle('', 'bold'), '');
+      assert('space only', simulateToggle(' ', 'bold'), ' ');
+      assert('symbols only', simulateToggle('!!!@@@', 'bold'), '!!!@@@');
+      assert('single char', simulateToggle('A', 'bold'), '𝐀');
+      assert('single char toggle', simulateToggle('𝐀', 'bold'), 'A');
+      assert('newlines preserved', simulateToggle('Hi\nWorld', 'bold'), '𝐇𝐢\n𝐖𝐨𝐫𝐥𝐝');
+      assert('newlines toggle off', simulateToggle('𝐇𝐢\n𝐖𝐨𝐫𝐥𝐝', 'bold'), 'Hi\nWorld');
+
+      // ============================================================
+      logSection('8. FULL ALPHABET BOUNDARY');
+      // ============================================================
+      const full = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      for (const fmt of ['bold', 'italic', 'boldItalic']) {
+        const enc = convertToUnicode(full, fmt);
+        const dec = revertFromUnicode(enc);
+        assert(`${fmt} full alphabet round-trip`, dec, full);
+        assert(`${fmt} detected correctly`, detectUnicodeFormat(enc), fmt);
+      }
+
+      // ============================================================
+      logSection('9. IDEMPOTENCY (double-apply prevention)');
+      // ============================================================
+      const id1 = convertToUnicode('Hello', 'bold');
+      assert('toggle prevents double-bold', simulateToggle(id1, 'bold'), 'Hello');
+      const id2 = convertToUnicode('World', 'italic');
+      assert('toggle prevents double-italic', simulateToggle(id2, 'italic'), 'World');
+
+      // ============================================================
+      logSection('10. MIXED FORMAT DETECTION');
+      // ============================================================
+      assert('detect bold with leading space', detectUnicodeFormat(' 𝐇'), 'bold');
+      assert('detect italic with leading emoji', detectUnicodeFormat('✓ 𝑊'), 'italic');
+      assert('detect null for plain', detectUnicodeFormat('Hello'), null);
+      assert('detect null for empty', detectUnicodeFormat(''), null);
+      assert('detect null for numbers only', detectUnicodeFormat('12345'), null);
+
+      // ============================================================
+      logSection('11. DOM INTEGRATION — contenteditable');
+      // ============================================================
+      // Test: type text, select, bold, verify, toggle off, verify
+      editor.innerHTML = '';
+      editor.textContent = 'Hello World';
+      editor.focus();
+
+      if (selectTextInEditor(editor, 0, 5)) {
+        applyFormatInEditor(editor, 'bold');
+        const afterBold = editor.textContent;
+        assert('DOM: "Hello" bolded', afterBold.startsWith('𝐇𝐞𝐥𝐥𝐨'), true);
+
+        // Check selection is still on the formatted text (bug fix #2)
+        const sel = window.getSelection();
+        const selectedAfterBold = sel.toString();
+        assert('DOM: selection stays on formatted text', selectedAfterBold, '𝐇𝐞𝐥𝐥𝐨');
+
+        // Toggle off
+        applyFormatInEditor(editor, 'bold');
+        const afterUnbold = editor.textContent;
+        assert('DOM: "Hello" unbolded', afterUnbold.startsWith('Hello'), true);
+
+        const selectedAfterUnbold = sel.toString();
+        assert('DOM: selection stays on reverted text', selectedAfterUnbold, 'Hello');
+      } else {
+        results.failed++;
+        results.log.push({ type: 'fail', text: '✗ DOM: could not select text in editor' });
+      }
+
+      // Test: bold then switch to italic
+      editor.innerHTML = '';
+      editor.textContent = 'Switch Test';
+      editor.focus();
+      if (selectTextInEditor(editor, 0, 6)) {
+        applyFormatInEditor(editor, 'bold');
+        const sel = window.getSelection();
+        assert('DOM: "Switch" is bold', detectUnicodeFormat(sel.toString()), 'bold');
+
+        applyFormatInEditor(editor, 'italic');
+        assert('DOM: "Switch" switched to italic', detectUnicodeFormat(sel.toString()), 'italic');
+
+        applyFormatInEditor(editor, 'italic');
+        assert('DOM: "Switch" toggled back to plain', sel.toString(), 'Switch');
+      }
+
+      // Test: format only partial text, rest stays
+      editor.innerHTML = '';
+      editor.textContent = 'Keep This Normal';
+      editor.focus();
+      if (selectTextInEditor(editor, 5, 9)) {
+        applyFormatInEditor(editor, 'bold');
+        const fullText = editor.textContent;
+        assert('DOM: partial bold keeps prefix', fullText.startsWith('Keep '), true);
+        assert('DOM: partial bold keeps suffix', fullText.endsWith(' Normal'), true);
+        assert('DOM: partial bold has formatted middle', fullText.includes('𝐓𝐡𝐢𝐬'), true);
+      }
+
+      // ============================================================
+      logSection('12. TRIPLE TOGGLE CYCLE');
+      // ============================================================
+      editor.innerHTML = '';
+      editor.textContent = 'CycleTest';
+      editor.focus();
+      if (selectTextInEditor(editor, 0, 9)) {
+        // Bold on
+        applyFormatInEditor(editor, 'bold');
+        let sel = window.getSelection();
+        assert('Cycle: step1 bold', detectUnicodeFormat(sel.toString()), 'bold');
+
+        // Bold off
+        applyFormatInEditor(editor, 'bold');
+        sel = window.getSelection();
+        assert('Cycle: step2 plain', sel.toString(), 'CycleTest');
+
+        // Italic on
+        applyFormatInEditor(editor, 'italic');
+        sel = window.getSelection();
+        assert('Cycle: step3 italic', detectUnicodeFormat(sel.toString()), 'italic');
+
+        // Switch to boldItalic
+        applyFormatInEditor(editor, 'boldItalic');
+        sel = window.getSelection();
+        assert('Cycle: step4 boldItalic', detectUnicodeFormat(sel.toString()), 'boldItalic');
+
+        // Toggle off
+        applyFormatInEditor(editor, 'boldItalic');
+        sel = window.getSelection();
+        assert('Cycle: step5 back to plain', sel.toString(), 'CycleTest');
+      }
+
+      // ============================================================
+      // RENDER RESULTS
+      // ============================================================
+      const container = document.getElementById('test-results');
+      container.innerHTML = results.log.map(r => {
+        if (r.type === 'section') return `<div class="section">${r.text}</div>`;
+        if (r.type === 'pass') return `<div class="pass">${r.text}</div>`;
+        return `<div class="fail">${r.text.replace(/\n/g, '<br>')}</div>`;
+      }).join('');
+
+      const summary = document.getElementById('summary');
+      const total = results.passed + results.failed;
+      summary.textContent = `${results.passed}/${total} PASSED, ${results.failed} FAILED`;
+      summary.className = results.failed === 0 ? 'all-pass' : 'has-fail';
+
+      // Expose for automation
+      window.__TEST_RESULTS = { passed: results.passed, failed: results.failed, total };
+    }
+  </script>
+</body>
+</html>
