@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g. 1.2.0). Leave empty to deploy current manifest version as-is.'
+        required: false
+        type: string
 
 jobs:
   deploy:
@@ -11,6 +17,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Bump version in manifest
+        if: inputs.version != ''
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          cd extension
+          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" manifest.json
+          echo "Updated manifest.json to version ${VERSION}"
+          grep '"version"' manifest.json
 
       - name: Package Extension
         run: |
