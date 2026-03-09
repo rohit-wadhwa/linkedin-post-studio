@@ -481,6 +481,13 @@
     editor.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
+  // Unicode Mathematical Alphanumeric ranges for formatting
+  const UNICODE_RANGES = {
+    bold:       { upper: 0x1d400, lower: 0x1d41a, digitStart: 0x1d7ce },
+    italic:     { upper: 0x1d434, lower: 0x1d44e },
+    boldItalic: { upper: 0x1d468, lower: 0x1d482 },
+  };
+
   function applyUnicodeFormat(type) {
     const editor = getActiveEditor();
     lpsDebug('applyUnicodeFormat called, type:', type, 'editor:', !!editor);
@@ -544,13 +551,6 @@
     incrementStat('postsFormatted');
   }
 
-  // Unicode Mathematical Alphanumeric ranges for formatting
-  const UNICODE_RANGES = {
-    bold:       { upper: 0x1d400, lower: 0x1d41a, digitStart: 0x1d7ce },
-    italic:     { upper: 0x1d434, lower: 0x1d44e },
-    boldItalic: { upper: 0x1d468, lower: 0x1d482 },
-  };
-
   function convertToUnicode(text, type) {
     const map = UNICODE_RANGES[type];
     if (!map) return text;
@@ -571,8 +571,10 @@
 
   /**
    * Detect if text is already in a Unicode formatted style.
-   * Checks the first alphabetic character to determine the format.
+   * Checks the first formatted character to determine the format.
    * Returns 'bold', 'italic', 'boldItalic', or null if plain.
+   * Note: assumes homogeneous formatting within the selection — mixed-format
+   * text (e.g., bold + italic chars) returns the format of the first match.
    */
   function detectUnicodeFormat(text) {
     for (const char of text) {

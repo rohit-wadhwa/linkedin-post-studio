@@ -9,8 +9,6 @@
 
 A Chrome extension that enhances the LinkedIn post editor with formatting tools, reusable templates, and live preview features to help users write clean, structured, and engaging posts directly inside LinkedIn.
 
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/lcdkgjcfpahnnkjkllicbfijiihdjgol?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white&style=for-the-badge)](https://chromewebstore.google.com/detail/linkedin-post-studio/lcdkgjcfpahnnkjkllicbfijiihdjgol)
-
 ## Features
 
 - **Inline Formatting** — Bold, italic, and bold-italic using Unicode characters that work natively on LinkedIn

@@ -41,6 +41,9 @@
     // ================================================================
     // Load the extension's core functions inline for testing
     // (Extracted from content-script.js — the actual production code)
+    // IMPORTANT: Keep in sync with extension/content-script.js.
+    // If you change convertToUnicode, detectUnicodeFormat, or
+    // revertFromUnicode in production, update the copies here too.
     // ================================================================
 
     const UNICODE_RANGES = {
