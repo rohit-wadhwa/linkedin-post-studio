@@ -52,12 +52,18 @@
       boldItalic: { upper: 0x1d468, lower: 0x1d482 },
     };
 
+    // U+1D455 (Mathematical Italic Small H) is unassigned in Unicode.
+    // The correct replacement is U+210E (PLANCK CONSTANT).
+    const ITALIC_EXCEPTIONS = { 'h': '\u210E' };
+    const ITALIC_EXCEPTION_REVERSE = { 0x210E: 'h' };
+
     function convertToUnicode(text, type) {
       const map = UNICODE_RANGES[type];
       if (!map) return text;
       return Array.from(text)
         .map((char) => {
           const code = char.charCodeAt(0);
+          if (type === 'italic' && ITALIC_EXCEPTIONS[char]) return ITALIC_EXCEPTIONS[char];
           if (code >= 65 && code <= 90 && map.upper) return String.fromCodePoint(map.upper + (code - 65));
           if (code >= 97 && code <= 122 && map.lower) return String.fromCodePoint(map.lower + (code - 97));
           if (code >= 48 && code <= 57 && map.digitStart) return String.fromCodePoint(map.digitStart + (code - 48));
@@ -69,6 +75,7 @@
     function detectUnicodeFormat(text) {
       for (const char of text) {
         const cp = char.codePointAt(0);
+        if (ITALIC_EXCEPTION_REVERSE[cp]) return 'italic';
         if (cp < 0x1d400) continue;
         if ((cp >= 0x1d400 && cp <= 0x1d419) || (cp >= 0x1d41a && cp <= 0x1d433)) return 'bold';
         if (cp >= 0x1d7ce && cp <= 0x1d7d7) return 'bold';
@@ -82,6 +89,7 @@
       return Array.from(text)
         .map((char) => {
           const cp = char.codePointAt(0);
+          if (ITALIC_EXCEPTION_REVERSE[cp]) return ITALIC_EXCEPTION_REVERSE[cp];
           if (cp >= 0x1d400 && cp <= 0x1d419) return String.fromCharCode(65 + (cp - 0x1d400));
           if (cp >= 0x1d41a && cp <= 0x1d433) return String.fromCharCode(97 + (cp - 0x1d41a));
           if (cp >= 0x1d7ce && cp <= 0x1d7d7) return String.fromCharCode(48 + (cp - 0x1d7ce));
@@ -350,6 +358,25 @@
         sel = window.getSelection();
         assert('Cycle: step5 back to plain', sel.toString(), 'CycleTest');
       }
+
+      // ============================================================
+      logSection('13. UNICODE GAP: ITALIC SMALL H (U+1D455 → U+210E)');
+      // ============================================================
+      const italicH = convertToUnicode('h', 'italic');
+      assert('italic h → U+210E', italicH, '\u210E');
+      assert('italic h codepoint is 0x210E', italicH.codePointAt(0), 0x210E);
+      assert('detect italic from U+210E', detectUnicodeFormat('\u210E'), 'italic');
+      assert('revert U+210E → h', revertFromUnicode('\u210E'), 'h');
+      const italicThanks = convertToUnicode('Thanks', 'italic');
+      assert('italic "Thanks" roundtrip', revertFromUnicode(italicThanks), 'Thanks');
+      const italicHelloThanks = convertToUnicode('Hello Thanks', 'italic');
+      assert('italic "Hello Thanks" roundtrip', revertFromUnicode(italicHelloThanks), 'Hello Thanks');
+      const italicHash = convertToUnicode('hash', 'italic');
+      assert('italic "hash" roundtrip', revertFromUnicode(italicHash), 'hash');
+      assert('bold h unaffected', convertToUnicode('h', 'bold').codePointAt(0), 0x1d41a + 7);
+      assert('boldItalic h unaffected', convertToUnicode('h', 'boldItalic').codePointAt(0), 0x1d482 + 7);
+      const fullLower = 'abcdefghijklmnopqrstuvwxyz';
+      assert('italic full lowercase roundtrip', revertFromUnicode(convertToUnicode(fullLower, 'italic')), fullLower);
 
       // ============================================================
       // RENDER RESULTS
