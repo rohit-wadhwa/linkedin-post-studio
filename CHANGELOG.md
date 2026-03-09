@@ -4,6 +4,15 @@ All notable changes to LinkedIn Post Studio will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] - 2026-03-09
+
+### Fixed
+- Italic formatting for letter 'h' — U+1D455 is unassigned in Unicode, now correctly maps to U+210E (Planck constant)
+- Detection and reversion of italic 'h' works correctly in both directions
+
+### Added
+- 10 new test cases in Section 13 of QA harness covering the Unicode italic h gap
+
 ## [1.1.0] - 2026-03-09
 
 ### Fixed
