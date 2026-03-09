@@ -18,12 +18,12 @@ jobs:
           zip -r ../extension.zip * \
             -x "*.git*"
 
-      - name: Upload to Chrome Web Store
-        uses: Klemensas/chrome-extension-upload-action@v1.1
+      - name: Upload & Publish to Chrome Web Store
+        uses: mobilefirstllc/cws-publish@latest
         with:
-          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          client-id: ${{ secrets.CHROME_CLIENT_ID }}
-          client-secret: ${{ secrets.CHROME_EXTENSION_SECRET }}
-          file-name: './extension.zip'
-          app-id: ${{ secrets.CHROME_APP_ID }}
-          publish: true
+          action: 'publish'
+          client_id: ${{ secrets.CHROME_CLIENT_ID }}
+          client_secret: ${{ secrets.CHROME_EXTENSION_SECRET }}
+          refresh_token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          extension_id: ${{ secrets.CHROME_APP_ID }}
+          zip_file: './extension.zip'
