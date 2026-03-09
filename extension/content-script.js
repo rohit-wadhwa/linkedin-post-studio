@@ -488,6 +488,11 @@
     boldItalic: { upper: 0x1d468, lower: 0x1d482 },
   };
 
+  // U+1D455 (Mathematical Italic Small H) is unassigned in Unicode.
+  // The correct replacement is U+210E (PLANCK CONSTANT).
+  const ITALIC_EXCEPTIONS = { 'h': '\u210E' };
+  const ITALIC_EXCEPTION_REVERSE = { 0x210E: 'h' };
+
   function applyUnicodeFormat(type) {
     const editor = getActiveEditor();
     lpsDebug('applyUnicodeFormat called, type:', type, 'editor:', !!editor);
@@ -558,6 +563,7 @@
     return Array.from(text)
       .map((char) => {
         const code = char.charCodeAt(0);
+        if (type === 'italic' && ITALIC_EXCEPTIONS[char]) return ITALIC_EXCEPTIONS[char];
         if (code >= 65 && code <= 90 && map.upper)
           return String.fromCodePoint(map.upper + (code - 65));
         if (code >= 97 && code <= 122 && map.lower)
@@ -579,6 +585,7 @@
   function detectUnicodeFormat(text) {
     for (const char of text) {
       const cp = char.codePointAt(0);
+      if (ITALIC_EXCEPTION_REVERSE[cp]) return 'italic';
       // Skip non-letter characters (spaces, punctuation, emoji, etc.)
       if (cp < 0x1d400) continue;
 
@@ -602,6 +609,7 @@
     return Array.from(text)
       .map((char) => {
         const cp = char.codePointAt(0);
+        if (ITALIC_EXCEPTION_REVERSE[cp]) return ITALIC_EXCEPTION_REVERSE[cp];
 
         // Bold uppercase → A-Z
         if (cp >= 0x1d400 && cp <= 0x1d419) return String.fromCharCode(65 + (cp - 0x1d400));
